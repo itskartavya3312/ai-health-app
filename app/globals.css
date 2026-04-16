@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply font-sans bg-slate-50 text-slate-900 antialiased; }
+  h1,h2,h3 { @apply font-display; }
+}
+@layer components {
+  .btn-primary { @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-secondary { @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-slate-700 border border-slate-200 font-medium hover:bg-slate-50 transition-all; }
+  .card { @apply bg-white rounded-2xl border border-slate-100 shadow-card; }
+  .card-hover { @apply card hover:shadow-card-lg hover:-translate-y-0.5 transition-all duration-200; }
+  .input-base { @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all; }
+  .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .hero-gradient { background: linear-gradient(135deg,#005c44 0%,#009672 40%,#26cfa1 100%); }
+  .skeleton { @apply bg-slate-200 rounded animate-pulse; }
+}
+.typing-dot { @apply inline-block w-2 h-2 rounded-full bg-teal-400; animation: bounce-dot 1.2s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay:.2s; }
+.typing-dot:nth-child(3) { animation-delay:.4s; }
+@keyframes bounce-dot { 0%,60%,100%{ transform:translateY(0) } 30%{ transform:translateY(-7px) } }
