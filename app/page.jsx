@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import SearchBar from '@/components/SearchBar';
-import DiseaseCard from '@/components/DiseaseCard';
-import SymptomChecker from '@/components/SymptomChecker';
+import SearchBar from '../components/SearchBar';
+import DiseaseCard from "../components/DiseaseCard";
+import SymptomChecker from "../components/SymptomChecker";
 import { Heart, Brain, Bone, Wind, TrendingUp, Stethoscope, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
 
 const CATS = [
