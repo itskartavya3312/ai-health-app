@@ -67,11 +67,8 @@ export async function POST(req) {
     });
 
   } catch (e) {
-    console.error(e);
-    return NextResponse.json(
-      { success: false, error: 'Analysis failed. Try again.' },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json(
+    { success: false, error: 'Analysis failed. Try again.' },
+    { status: 500 }
+  );
 }
