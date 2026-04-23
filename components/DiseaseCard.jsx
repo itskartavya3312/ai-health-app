@@ -19,40 +19,65 @@ const SEV_COLORS = {
 };
 
 export default function DiseaseCard({ disease: d }) {
+  if (!d) return null;
+
   const catColor = CAT_COLORS[d.category] || 'bg-slate-50 text-slate-600 border-slate-100';
   const sevColor = SEV_COLORS[d.severity] || 'bg-slate-100 text-slate-600';
 
   return (
-    <Link href={`/disease/${d.slug}`} className="card-hover block p-5 h-full group">
-      {/* Icon + severity */}
-      <div className="flex items-start justify-between mb-3">
-        <div className={`w-11 h-11 rounded-xl ${catColor} flex items-center justify-center text-xl border shrink-0`}>
-          {d.icon || '🩺'}
+    <Link
+      href={`/disease/${d.slug || ''}`}
+      className="group block h-full"
+    >
+      <div className="card-hover p-5 h-full flex flex-col justify-between">
+
+        {/* Top Section */}
+        <div>
+          {/* Icon + Severity */}
+          <div className="flex items-start justify-between mb-3">
+            <div className={`w-11 h-11 rounded-xl ${catColor} flex items-center justify-center text-xl border shrink-0`}>
+              {d.icon || '🩺'}
+            </div>
+
+            {d.severity && (
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${sevColor}`}>
+                {d.severity}
+              </span>
+            )}
+          </div>
+
+          {/* Name */}
+          <h3 className="font-semibold text-slate-900 text-sm mb-1.5 line-clamp-1 group-hover:text-teal-700 transition">
+            {d.name || 'Unknown Condition'}
+          </h3>
+
+          {/* Overview */}
+          <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-3">
+            {d.overview || 'No description available.'}
+          </p>
         </div>
-        {d.severity && (
-          <span className={`badge ${sevColor} text-xs`}>{d.severity}</span>
-        )}
+
+        {/* Bottom Section */}
+        <div>
+          {/* Category */}
+          <span className={`inline-block text-xs px-2 py-1 rounded-full border capitalize ${catColor}`}>
+            {d.category?.replace('-', ' ') || 'General'}
+          </span>
+
+          {/* Prevalence */}
+          {d.prevalence && (
+            <p className="text-xs text-slate-400 mt-2 truncate">
+              {d.prevalence}
+            </p>
+          )}
+
+          {/* CTA hint */}
+          <div className="mt-3 text-xs text-teal-600 opacity-0 group-hover:opacity-100 transition">
+            View details →
+          </div>
+        </div>
+
       </div>
-
-      {/* Name */}
-      <h3 className="font-semibold text-slate-900 text-sm mb-1.5 line-clamp-1 group-hover:text-teal-700 transition-colors">
-        {d.name}
-      </h3>
-
-      {/* Overview snippet */}
-      <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 mb-3">
-        {d.overview}
-      </p>
-
-      {/* Category badge */}
-      <span className={`badge ${catColor} text-xs border capitalize`}>
-        {d.category?.replace('-', ' ') || 'General'}
-      </span>
-
-      {/* Prevalence if available */}
-      {d.prevalence && (
-        <p className="text-xs text-slate-400 mt-2 truncate">{d.prevalence}</p>
-      )}
     </Link>
   );
 }

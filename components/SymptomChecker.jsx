@@ -19,16 +19,34 @@ export default function SymptomChecker({ onClose, standalone = false }) {
 
   async function analyse() {
     if (!input.trim() || loading) return;
-    setLoading(true); setError(''); setResult(null);
+
+    setLoading(true);
+    setError('');
+    setResult(null);
+
     try {
       const res = await fetch('/api/symptom-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symptoms: input }),
       });
+
       const data = await res.json();
-      if (data.success) setResult(data.data);
-      else setError(data.error || 'Analysis failed. Please try again.');
+
+      if (!data.success) {
+        setError(data.error || 'Analysis failed. Please try again.');
+        return;
+      }
+
+      // 🔥 IMPORTANT: handle string vs object
+      if (typeof data.data === 'string') {
+        setResult({
+          raw: data.data
+        });
+      } else {
+        setResult(data.data);
+      }
+
     } catch {
       setError('Network error. Please check your connection.');
     } finally {
@@ -38,22 +56,25 @@ export default function SymptomChecker({ onClose, standalone = false }) {
 
   return (
     <div className={`card p-6 ${!standalone ? 'border-teal-200 bg-teal-50/30' : ''}`}>
+
       {/* Header */}
       {!standalone && (
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Stethoscope size={18} className="text-teal-600" />
-            <h2 className="font-display text-lg font-semibold text-slate-900">AI Symptom Checker</h2>
+            <h2 className="font-display text-lg font-semibold text-slate-900">
+              AI Symptom Checker
+            </h2>
           </div>
           {onClose && (
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100">
               <X size={16} />
             </button>
           )}
         </div>
       )}
 
-      {/* Input area */}
+      {/* Input */}
       <div className="flex gap-3 mb-3 flex-col sm:flex-row">
         <textarea
           value={input}
@@ -61,9 +82,10 @@ export default function SymptomChecker({ onClose, standalone = false }) {
           onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) analyse(); }}
           rows={3}
           maxLength={500}
-          placeholder="Describe your symptoms... e.g. I have had a fever of 38°C, headache, and fatigue for 2 days"
+          placeholder="Describe your symptoms..."
           className="input-base flex-1 resize-none text-sm"
         />
+
         <button
           onClick={analyse}
           disabled={!input.trim() || loading}
@@ -76,20 +98,20 @@ export default function SymptomChecker({ onClose, standalone = false }) {
         </button>
       </div>
 
-      {/* Character count */}
+      {/* Info row */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-slate-400">Press Ctrl+Enter to submit</p>
+        <p className="text-xs text-slate-400">Ctrl + Enter to submit</p>
         <p className="text-xs text-slate-400">{input.length}/500</p>
       </div>
 
-      {/* Quick symptom chips */}
+      {/* Quick chips */}
       <div className="flex flex-wrap gap-2 mb-5">
         {QUICK_SYMPTOMS.map(q => (
           <button
             key={q}
             onClick={() => setInput(q)}
-            className="text-xs px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600
-                       hover:border-teal-300 hover:text-teal-700 transition-colors"
+            className="text-xs px-3 py-1.5 rounded-full bg-white border border-slate-200
+                       text-slate-600 hover:border-teal-300 hover:text-teal-700"
           >
             {q}
           </button>
@@ -99,79 +121,74 @@ export default function SymptomChecker({ onClose, standalone = false }) {
       {/* Error */}
       {error && (
         <div className="flex gap-2 items-center bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-700 text-sm mb-4">
-          <AlertCircle size={16} className="shrink-0" />{error}
+          <AlertCircle size={16} /> {error}
+        </div>
+      )}
+
+      {/* Loading Skeleton */}
+      {loading && (
+        <div className="space-y-3 animate-pulse">
+          <div className="h-4 bg-slate-200 rounded w-1/2" />
+          <div className="h-3 bg-slate-200 rounded w-full" />
+          <div className="h-3 bg-slate-200 rounded w-2/3" />
         </div>
       )}
 
       {/* Results */}
-      {result && (
+      {result && !loading && (
         <div className="space-y-4 animate-slide-up">
 
-          {/* Possible conditions */}
+          {/* 🔥 RAW TEXT FALLBACK (important) */}
+          {result.raw && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700 whitespace-pre-wrap">
+              {result.raw}
+            </div>
+          )}
+
+          {/* Conditions */}
           {result.possibleConditions?.length > 0 && (
             <div>
-              <h3 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs">AI</span>
+              <h3 className="font-semibold text-slate-800 text-sm mb-3">
                 Possible Conditions
               </h3>
               <div className="space-y-3">
                 {result.possibleConditions.map((c, i) => (
                   <div key={i} className="card p-4">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-medium text-slate-800 text-sm">{c.name}</span>
-                      <span className={`badge text-xs ${
-                        c.probability === 'High'   ? 'bg-amber-100 text-amber-700' :
-                        c.probability === 'Medium' ? 'bg-blue-100 text-blue-700'   :
-                                                     'bg-slate-100 text-slate-600'
-                      }`}>{c.probability}</span>
+                    <div className="flex justify-between mb-1">
+                      <span className="font-medium text-sm">{c.name}</span>
+                      <span className="text-xs text-slate-500">{c.probability}</span>
                     </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">{c.explanation}</p>
+                    <p className="text-xs text-slate-500">{c.explanation}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Immediate actions */}
-          {result.immediateActions?.length > 0 && (
-            <div className="card p-4">
-              <h4 className="font-semibold text-slate-800 text-sm mb-2">✅ Recommended Actions</h4>
-              <ul className="space-y-1.5">
-                {result.immediateActions.map((a, i) => (
-                  <li key={i} className="text-xs text-slate-600 flex gap-2 leading-relaxed">
-                    <span className="text-teal-500 shrink-0 mt-0.5">→</span>{a}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* ER warning signs */}
+          {/* Emergency */}
           {result.warningSignsForER?.length > 0 && (
             <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
-              <h4 className="font-semibold text-rose-700 text-sm mb-2">🚨 Seek Emergency Care If:</h4>
-              <ul className="space-y-1.5">
-                {result.warningSignsForER.map((w, i) => (
-                  <li key={i} className="text-xs text-rose-600 flex gap-2 leading-relaxed">
-                    <span className="shrink-0">•</span>{w}
-                  </li>
-                ))}
-              </ul>
+              <h4 className="font-semibold text-rose-700 text-sm mb-2">
+                🚨 Seek Immediate Help
+              </h4>
+              {result.warningSignsForER.map((w, i) => (
+                <p key={i} className="text-xs text-rose-600">• {w}</p>
+              ))}
             </div>
           )}
 
-          {/* General advice */}
+          {/* Advice */}
           {result.generalAdvice && (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-              <h4 className="font-semibold text-slate-700 text-sm mb-1">General Guidance</h4>
-              <p className="text-xs text-slate-600 leading-relaxed">{result.generalAdvice}</p>
+              <p className="text-xs text-slate-600">{result.generalAdvice}</p>
             </div>
           )}
 
           {/* Disclaimer */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
-            ⚕️ {result.disclaimer || 'This is not a medical diagnosis. Please consult a healthcare professional.'}
+            ⚕️ {result.disclaimer || 'Not a medical diagnosis. Consult a doctor.'}
           </div>
+
         </div>
       )}
     </div>
