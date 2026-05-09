@@ -1,4 +1,4 @@
-import SymptomChecker from '@/components/SymptomChecker';
+import SymptomChecker from '../../components/SymptomChecker';
 import { Stethoscope } from 'lucide-react';
 
 export const metadata = {
